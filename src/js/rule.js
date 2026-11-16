@@ -1,5 +1,5 @@
 /*!
- *  電脳麻将: ルール設定 v2.5.4
+ *  电脑麻将: 规则设置 v2.5.4
  *
  *  Copyright(C) 2017 Satoshi Kobayashi
  *  Released under the MIT license
@@ -135,7 +135,7 @@ function repair_damanguan() {
 
 function unsaved() {
     $(window).on('beforeunload', (ev)=>{
-        const message = 'ページを離れますがよろしいですか？';
+        const message = '即将离开页面，确定吗？';
         ev.returnValue = message;
         return message;
     });
@@ -148,7 +148,7 @@ $(function(){
     }
     if (localStorage.getItem('Majiang.rule')) {
         $('select[name="プリセット"]').append($('<option>')
-                                    .val('-').text('カスタムルール'));
+                                    .val('-').text('自定义规则'));
         $('select[name="プリセット"]').val('-');
     }
 
@@ -184,7 +184,7 @@ $(function(){
     $('form').on('submit', ()=>{
         if (! localStorage.getItem('Majiang.rule')) {
             $('select[name="プリセット"]').append($('<option>')
-                                        .val('-').text('カスタムルール'));
+                                        .val('-').text('自定义规则'));
         }
         localStorage.setItem('Majiang.rule', JSON.stringify(get_form()));
 

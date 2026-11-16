@@ -1,5 +1,5 @@
 /*!
- *  電脳麻将: ネット対戦 v2.5.4
+ *  电脑麻将: 网络对战 v2.5.4
  *
  *  Copyright(C) 2017 Satoshi Kobayashi
  *  Released under the MIT license
@@ -53,7 +53,7 @@ $(function(){
 
         sock.on('HELLO', hello);
         sock.on('ROOM', room);
-        sock.on('START', start);
+        sock.on('开始', start);
         sock.on('END', end);
         sock.on('ERROR', file.error);
         sock.on('disconnect', ()=>hide($('#file .netplay form.room')));
@@ -174,7 +174,7 @@ $(function(){
     }
     if (localStorage.getItem('Majiang.rule')) {
         $('select[name="rule"]').append($('<option>')
-                                .val('-').text('カスタムルール'));
+                                .val('-').text('自定义规则'));
     }
 
     $('#file form.room').on('submit', (ev)=>{
@@ -196,7 +196,7 @@ $(function(){
         timer = timer.match(/(\d+)/g);
         if (timer) timer = timer.map(t=>+t);
 
-        sock.emit('START', room, rule, timer);
+        sock.emit('开始', room, rule, timer);
         return false;
     });
 

@@ -1,5 +1,5 @@
 /*!
- *  電脳麻将: 和了点計算 v2.5.4
+ *  电脑麻将: 和了点数计算 v2.5.4
  *
  *  Copyright(C) 2017 Satoshi Kobayashi
  *  Released under the MIT license
@@ -205,7 +205,7 @@ $(function(){
     }
     if (localStorage.getItem('Majiang.rule')) {
         $('select[name="rule"]').append($('<option>')
-                                .val('-').text('カスタムルール'));
+                                .val('-').text('自定义规则'));
     }
 
     $('form').on('submit', submit);

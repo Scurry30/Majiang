@@ -1,5 +1,5 @@
 /*!
- *  電脳麻将: 点数計算ドリル v2.5.4
+ *  电脑麻将: 点数计算练习 v2.5.4
  *
  *  Copyright(C) 2017 Satoshi Kobayashi
  *  Released under the MIT license
@@ -12,7 +12,7 @@ const { hide, show, fadeIn, fadeOut } = Majiang.UI.Util;
 const preset = require('./conf/rule.json');
 const view = {};
 
-const feng_hanzi = ['東','南','西','北'];
+const feng_hanzi = ['东','南','西','北'];
 
 let player, next_exam, miss_exams, stat;
 
@@ -182,32 +182,32 @@ function show_exam(exam) {
     view.shoupai = new Majiang.UI.Shoupai(
                             $('.shoupai'), view.pai, shoupai
                         ).redraw(true);
-    if (exam.rongpai) $('.shoupai .zimo').prepend('<span>ロン</span>');
-    else              $('.shoupai .zimo').append('<span>ツモ</span>');
+    if (exam.rongpai) $('.shoupai .zimo').prepend('<span>荣和</span>');
+    else              $('.shoupai .zimo').append('<span>自摸</span>');
 
     let defen;
     if (hule && hule.defen) {
-        defen = (exam.rongpai ? 'ロン: ' : 'ツモ: ')
+        defen = (exam.rongpai ? '荣和: ' : '自摸: ')
               + (exam.rongpai ? hule.defen
                     : exam.menfeng
                         ? (Math.ceil(hule.defen / 200) * 100 / 2)
                             + ' / ' + (Math.floor(hule.defen / 200) * 100)
-                        : `${hule.defen / 3}オール`)
+                        : `${hule.defen / 3}全`)
               + (hule.damanguan
                   ? (hule.damanguan > 1
-                        ? ` (役満 ×${hule.damanguan})`
-                        : ' (役満)')
+                        ? ` (役满 ×${hule.damanguan})`
+                        : ' (役满)')
                   : ` (${hule.fu}符 ${hule.fanshu}翻)`);
     }
     else {
-        defen = '(役なし)';
+        defen = '(无役)';
     }
     $('.defen').text(defen);
 
     let hupai = '';
     if (hule && hule.hupai)
         hupai = hule.hupai.map(h =>
-                    h.name.match(/^(赤|裏)?ドラ$/)
+                    h.name.match(/^(赤|裏)?宝牌$/)
                         ? `${h.name} ×${h.fanshu}` : h.name
                 ).join(' / ');
     $('.hupai').text(hupai);
@@ -236,7 +236,7 @@ function show_exam(exam) {
 function next() {
     hide($('.drill'));
     $('.stat').text(
-        `回答数: ${stat.total}、`
+        `答案数: ${stat.total}、`
         + `正答率: ${(stat.right / stat.total * 100)|0}%`);
     if (stat.total % 10 == 0) take_break();
     else                      show_exam(next_exam || make_exam(player));
@@ -272,7 +272,7 @@ $(function(){
     }
     if (localStorage.getItem('Majiang.rule')) {
         $('select[name="rule"]').append($('<option>')
-                                .val('-').text('カスタムルール')
+                                .val('-').text('自定义规则')
                                 .attr('selected',true));
     }
 

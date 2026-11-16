@@ -1,5 +1,5 @@
 /*!
- *  電脳麻将: 牌画入力 v2.5.4
+ *  电脑麻将: 牌画入力 v2.5.4
  *
  *  Copyright(C) 2017 Satoshi Kobayashi
  *  Released under the MIT license
@@ -7,8 +7,8 @@
  */
 "use strict";
 
-const example = 'このような記述ができます。\n'
-              + '{s067z1 z1}(ツモ) {p2-13} {z666=6} {_z77_} {  }(ドラ){m1}';
+const example = '可以这样书写。\n'
+              + '{s067z1 z1}(自摸) {p2-13} {z666=6} {_z77_} {  }(宝牌){m1}';
 
 const imgbase = 'https://kobalab.github.io/paiga/2/';
 

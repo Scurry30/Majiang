@@ -1,15 +1,15 @@
 #editor
   .menu
     h1
-      img(src="img/logo.png" alt="電脳麻将")
-      div 牌譜エディタ
+      img(src="img/logo.png" alt="电脑麻将")
+      div 牌谱编辑器
     .version ver. #{version}
 
     .title
 
     .score
       select(name="game")
-        option 東一局
+        option 东一局
       .jicun
         label
           img.chouma(src="img/100.gif" alt="本場")
@@ -52,9 +52,9 @@
     table
       tr
         th 起家
-        th 対局者
+        th 对局者
         th 得点
-        th ポイント
+        th 积分
       each n in [ 0, 1, 2, 3 ]
         tr
           td.qijia
@@ -108,9 +108,9 @@
       label.baojia
         | 放銃 
         select(name="baojia" disabled)
-          option(value="") (ツモ)
+          option(value="") (自摸)
       label.fubaopai
-        | 裏ドラ 
+        | 里宝牌 
         .fubaopai
           .shan
             each n in [ 0, 1, 2, 3, 4 ]
@@ -129,7 +129,7 @@
           input(name="baojia" type="hidden")
       .defen
         span.damanguan
-          | 役満
+          | 役满
           input(name="damanguan" size="2")
         span.normal
           input(name="fu" size="3")
@@ -148,7 +148,7 @@
           | : 
           input(name="lizhibang")
       ul.fenpei
-        each f in ['東','南','西','北']
+        each f in ['东','南','西','北']
           li
             span= f
             input(name="fenpei" size="6")
@@ -166,7 +166,7 @@
         | 流局理由: 
         input(name="pingju")
       ul
-        each f in ['東','南','西','北']
+        each f in ['东','南','西','北']
           li
             span= f
             input(name="fenpei" size="6")

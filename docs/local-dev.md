@@ -55,7 +55,6 @@ python -m http.server 8777 --bind 127.0.0.1 --directory Majiang/dist
 改任意子包的 `lib/*.js` 后重跑构建，刷新浏览器就能看到效果。
 
 ## 这样搭踩到的坑（都已解决，改环境时别踩回去）
-
 1. **不要用 `file:` 依赖。** pnpm 会把它装成快照拷贝（`symlink=false`），改本地仓库不生效。
    必须走 workspace + `linkWorkspacePackages: true`，依赖才会是链接。
 2. **不要开 `shamefullyHoist`。** 它把所有包摊平成真实目录，连 workspace 的软链接一起摊掉。
@@ -72,6 +71,24 @@ python -m http.server 8777 --bind 127.0.0.1 --directory Majiang/dist
    构建脚本改用 webpack 的 Node API，并直接从 `.pnpm` 里解析 webpack。
 7. 原项目的 `npm run release` 系列脚本会调用 `npm`，在没有 npm 的机器上不可用；
    本环境统一用上面的 `build.ps1`。
+8. **`build.ps1` 必须保持纯 ASCII。** Windows PowerShell 5.1 会把无 BOM 的 `.ps1`
+   当 ANSI 读，脚本里的中文路径会变成乱码、`Push-Location` 直接失败。
+   路径用 `$PSScriptRoot` 拼接，注释也用英文。
+9. **pug 必须是 3.x。** 作者在 `package.json` 里写了 `"overrides": {"pug": "^3.0.4"}`，
+   但 pnpm 11 不读那个字段，于是装到 pug 2.0.4；pug 2 → `with` → `acorn-globals`
+   要 acorn 4 的 `dist/walk`，在 pnpm 布局下会被 hoist 的 acorn 8 抢答，编译直接报
+   `ERR_PACKAGE_PATH_NOT_EXPORTED`。解决办法是把这条 override 搬进 `pnpm-workspace.yaml`。
+
+## 简中化
+
+界面文案已整体改为简体中文，做法与词表：
+
+- 词表：`tools/i18n/zh-cn.json`（原文 → 简中，含需要保护的规则键清单）
+- 术语对照：`docs/glossary.md`（日文 → 简中，逐条标注代码出处）
+- 只替换**给人看的文案**；`core/lib/rule.js` 的 28 个规则键是数据键，被 core / ai / ui /
+  主工程四处引用并写进存档，保持日文不动，脚本里用带引号的占位符保护
+
+改词表后重新应用的方式见工作区根目录的 `i18n/apply.js`（扫描 4 个仓库、按长词优先替换）。
 
 ## 子包改动的提交去向
 
