@@ -92,12 +92,23 @@ python -m http.server 8777 --bind 127.0.0.1 --directory Majiang/dist
 
 ## 子包改动的提交去向
 
-主工程的 fork 是 `origin`，上游是 `upstream`。三个子包目前**只配了上游 remote**，
-要提交子包的改动，需要先把它们各自 fork 一份，再：
+四个仓库现在都是同一个规矩：`origin` = 自己的 fork，`upstream` = 原作者仓库。
+
+| 仓库 | origin | upstream |
+|:--|:--|:--|
+| Majiang | Scurry30/Majiang | kobalab/Majiang |
+| majiang-core | Scurry30/majiang-core | kobalab/majiang-core |
+| majiang-ai | Scurry30/majiang-ai | kobalab/majiang-ai |
+| majiang-ui | Scurry30/majiang-ui | kobalab/majiang-ui |
+
+改完子包直接 `git -C <子包> push origin master`。要同步上游：
 
 ```bash
-git -C majiang-core remote add origin https://github.com/<you>/majiang-core.git
+git -C majiang-core fetch upstream && git -C majiang-core merge upstream/master
 ```
+
+注意：同步上游很可能会把简中化的文案改回日文，合并后需要重新跑一遍词表
+（见上一节）。`tools/i18n/zh-cn.json` 就是为这个场景留的。
 
 ## 基线版本
 
