@@ -1,0 +1,43 @@
+- var page = 'ruleset'
+
+doctype html
+html(lang="zh-CN")
+
+  head
+    include ../inc/meta
+
+    title 选择规则集
+
+    include ../inc/style
+    include ../inc/script
+
+  body.ruleset
+    include ../inc/loaderr
+    include ../inc/navi
+
+    #rs
+      h1 选择规则集
+      p.rs-lead 不同规则集用各自的引擎和牌桌，互不影响。选择会记在本机，下次直接进对应页面。
+      #rs-list
+
+    style.
+      body.ruleset { margin: 0; background: #101512; color: #eee;
+                     font-family: "Microsoft YaHei", sans-serif; }
+      #rs { width: 820px; margin: 40px auto 60px; }
+      #rs h1 { font-size: 24px; font-weight: 500; margin: 0 0 8px; }
+      #rs .rs-lead { color: #9fb8ab; font-size: 13px; margin: 0 0 26px; line-height: 1.7; }
+      #rs-list { display: flex; flex-direction: column; gap: 14px; }
+      .rs-card { background: #16302a; border: 1px solid #24503f; border-radius: 12px;
+                 padding: 18px 22px; }
+      .rs-card.current { border-color: #3c9a71; box-shadow: 0 0 0 1px #3c9a71 inset; }
+      .rs-head { display: flex; align-items: center; gap: 10px; }
+      .rs-name { font-size: 19px; color: #e8f4ee; }
+      .rs-badge { font-size: 11px; color: #0f1b16; background: #7fd1a8;
+                  border-radius: 999px; padding: 2px 8px; }
+      .rs-desc { color: #b9cdc3; font-size: 14px; line-height: 1.7; margin: 10px 0 12px; }
+      .rs-tags { display: flex; gap: 8px; margin-bottom: 14px; }
+      .rs-tags span { font-size: 12px; color: #8fd0b0; border: 1px solid #2f6b52;
+                      border-radius: 999px; padding: 2px 10px; }
+      .rs-card button { font-size: 15px; padding: 8px 22px; border-radius: 8px;
+                        border: none; background: #2f7d5b; color: #fff; cursor: pointer; }
+      .rs-card button:hover { background: #3c9a71; }
