@@ -44,6 +44,7 @@ const config = {
         dapai:    './src/js/dapai.js',
         paiga:    './src/js/paiga.js',
         wenling:  './src/js/wenling.js',
+        'wenling-replay': './src/js/wenling-replay.js',
         ruleset:  './src/js/ruleset.js',
     },
     output: {

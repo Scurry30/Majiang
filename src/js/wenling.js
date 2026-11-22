@@ -188,9 +188,23 @@ document.addEventListener('click', ev => {
         return answer({ type: act, tile: b.getAttribute('data-tile') });
 });
 
+/* ---------- 牌谱：存到 localStorage ---------- */
+
+const STORE = 'Wenling.paipu';
+
+function save_record(record) {
+    let list = [];
+    try { list = JSON.parse(localStorage.getItem(STORE) || '[]') } catch (e) { list = [] }
+    const id = String(Date.now());
+    list.unshift({ id, at: new Date().toISOString(), summary: record.summary, record });
+    while (list.length > 30) list.pop();
+    try { localStorage.setItem(STORE, JSON.stringify(list)) } catch (e) { /* 容量满了就先不存 */ }
+    return id;
+}
+
 /* ---------- 结算面板 ---------- */
 
-function show_result(r) {
+function show_result(r, record_id) {
     const el = document.querySelector('#wl-result');
     let body = '';
 
@@ -217,7 +231,9 @@ function show_result(r) {
                      <td class="num">${d >= 0 ? '+' : ''}${d}</td></tr>`;
     });
     body += '</table>';
-    body += '<button id="again">再来一局</button>';
+    body += `<button id="again">再来一局</button>`;
+    if (record_id)
+        body += ` <a class="replay" href="wenling-replay.html?id=${record_id}">回放这局</a>`;
 
     el.innerHTML = `<div class="card">${body}</div>`;
     el.classList.remove('hide');
@@ -241,15 +257,25 @@ document.querySelector('#wl-new').addEventListener('click', () => {
 
 async function start() {
     pending = null;
-    game = new Wenling.Game(rule, make_policy(),
-                            { seed: (Math.random() * 1e9) | 0 });
+
+    const seed      = (Math.random() * 1e9) | 0;
+    const decisions = [];
+    const { policy: wrapped, names }
+        = Wenling.record.record_policy(make_policy(), decisions);
+
+    game = new Wenling.Game(rule, wrapped, { seed });
+    game._on_update = () => render();
     game.kaiju();
     render();
 
     const result = await game.run();
     pending = null;
     render();
-    show_result(result);
+
+    const record = Wenling.record.make_record(
+        { seed, rule, decisions, methods: names, game, result });
+    const id = save_record(record);
+    show_result(result, id);
 }
 
 start();
