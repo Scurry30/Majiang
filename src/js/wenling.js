@@ -32,8 +32,13 @@ function seat(l) {
     const h    = game.hands[l];
     const name = NAME[game.menfeng(l)] + (l === game.zhuang ? '（庄）' : '');
 
+    const kuikae = (l === 0) ? h.kuikae : null;
     const hand = l === 0
-        ? h.pai.map(p => pai(p, pending && pending.kind === 'dapai' ? 'selectable' : '')).join('')
+        ? h.pai.map(p => {
+              const cls = (p === kuikae) ? 'disabled'
+                        : (pending && pending.kind === 'dapai' ? 'selectable' : '');
+              return pai(p, cls);
+          }).join('')
         : back(h.shoupaishu);
 
     const flowers = h.flowers.map(f => Wenling.Pai.FLOWER_NAME[f]).join('');
@@ -79,6 +84,7 @@ function render() {
         <div class="center">
             <div class="joker">${pai(game.shan.indicator)}</div>
             <div class="cap">财神 ${game.shan.joker}</div>
+            <div class="wall">${game.jushu_name()}${game.changbang ? ' ' + game.changbang + ' 本场' : ''}</div>
             <div class="wall">牌墙 ${game.shan.paishu} 张</div>
             ${game.nao ? '<div class="nao">闹闹</div>' : ''}
         </div>
