@@ -118,16 +118,14 @@ function auto_answer() {
     return answer(false);                       // 碰 / 杠
 }
 
-/* ---------- 策略：人类在 P0，其余随机 ---------- */
+/* ---------- 策略：人类在 P0，其余用牌效 AI ---------- */
 
-function random_policy() {
-    const bot_dapai = hand => {
-        const list = hand.dapai_list;
-        return list[Math.floor(Math.random() * list.length)];
-    };
+function make_policy() {
+    const ai = Wenling.ai.create_policy();
+
     return {
         dapai(hand, ctx) {
-            if (ctx.player !== 0 || auto) return bot_dapai(hand);
+            if (ctx.player !== 0 || auto) return ai.dapai(hand, ctx);
             return ask({ kind: 'dapai', hand });
         },
         hu_zimo(hand, ctx) {
@@ -139,7 +137,7 @@ function random_policy() {
             return ask({ kind: 'hu', label: `荣和 ${tile}` });
         },
         pon(hand, tile, ctx) {
-            if (ctx.player !== 0 || auto) return false;
+            if (ctx.player !== 0 || auto) return ai.pon(hand, tile, ctx);
             return ask({ kind: 'pon', tile });
         },
         gang(hand, tile, ctx) {
@@ -147,7 +145,7 @@ function random_policy() {
             return ask({ kind: 'gang', tile });
         },
         chi(hand, options, tile, ctx) {
-            if (ctx.player !== 0 || auto) return null;
+            if (ctx.player !== 0 || auto) return ai.chi(hand, options, tile, ctx);
             return ask({ kind: 'chi', options, tile });
         },
         self_gang(hand, ctx) {
@@ -237,7 +235,7 @@ document.querySelector('#wl-new').addEventListener('click', () => {
 
 async function start() {
     pending = null;
-    game = new Wenling.Game(rule, random_policy(),
+    game = new Wenling.Game(rule, make_policy(),
                             { seed: (Math.random() * 1e9) | 0 });
     game.kaiju();
     render();
