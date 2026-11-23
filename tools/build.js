@@ -45,6 +45,7 @@ const config = {
         paiga:    './src/js/paiga.js',
         wenling:  './src/js/wenling.js',
         'wenling-replay': './src/js/wenling-replay.js',
+        'wenling-stats':  './src/js/wenling-stats.js',
         ruleset:  './src/js/ruleset.js',
     },
     output: {

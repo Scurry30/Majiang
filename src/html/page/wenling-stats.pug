@@ -1,0 +1,49 @@
+- var page = 'wenling-stats'
+
+doctype html
+html(lang="zh-CN")
+
+  head
+    include ../inc/meta
+
+    title 温岭统计
+
+    include ../inc/style
+    include ../inc/script
+
+  body.wl-stats
+    include ../inc/loaderr
+    include ../inc/navi
+
+    #ws
+      h1 温岭牌谱统计
+      #ws-progress
+      #ws-cards
+      h2 最近对局
+      #ws-table
+
+    style.
+      body.wl-stats { margin: 0; background: #101512; color: #eee;
+                      font-family: "Microsoft YaHei", sans-serif; }
+      #ws { width: min(1000px, calc(100vw - 24px)); margin: 36px auto 60px; }
+      #ws h1 { font-size: 22px; font-weight: 500; margin: 0 0 6px; }
+      #ws h2 { font-size: 16px; font-weight: 500; margin: 28px 0 10px; color: #cfe8db; }
+      #ws-progress { color: #9fd6bb; font-size: 13px; min-height: 18px; margin-bottom: 12px; }
+      #ws-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+                  gap: 12px; }
+      .ws-card { background: #16302a; border: 1px solid #24503f; border-radius: 10px;
+                 padding: 12px 14px; }
+      .ws-card .k { font-size: 12px; color: #9fd6bb; }
+      .ws-card .v { font-size: 22px; color: #e8f4ee; margin-top: 4px; }
+      .ws-card .s { font-size: 11px; color: #7f9a8d; margin-top: 2px; }
+      #ws-table table { width: 100%; border-collapse: collapse; font-size: 13px; }
+      #ws-table th, #ws-table td { text-align: left; padding: 6px 8px;
+                                   border-bottom: 1px solid #1d3a30; }
+      #ws-table th { color: #9fd6bb; font-weight: normal; }
+      #ws-table td.num { text-align: right; }
+      #ws-table .win { color: #7fd1a8; }
+      #ws-table .lose { color: #ff8a65; }
+      #ws-table .bad { color: #ff8a65; }
+      #ws-empty { color: #9fd6bb; margin-top: 40px; }
+
+      #ws-tips { color: #9fd6bb; font-size: 12px; margin-top: 18px; line-height: 1.7; }
