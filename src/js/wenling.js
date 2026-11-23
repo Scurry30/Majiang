@@ -28,6 +28,28 @@ function btn(label, act, extra = '') {
 
 /* ---------- 渲染 ---------- */
 
+/* 中央那行提示：现在轮到谁 / 刚打了什么 */
+function turn_text() {
+    if (! game) return '';
+    if (pending && pending.kind === 'dapai') return '轮到你出牌';
+
+    const last = game.log[game.log.length - 1];
+    if (! last) return '';
+
+    if (last.action === '打') {
+        const who = last.player === 0 ? '你' : NAME[game.menfeng(last.player)] + '家';
+        return `${who} 打出 ${tile_name(last.detail)}`;
+    }
+    if (last.action === '碰' || last.action === '吃' || last.action === '杠'
+            || last.action === '暗杠' || last.action === '加杠') {
+        const who = last.player === 0 ? '你' : NAME[game.menfeng(last.player)] + '家';
+        return `${who} ${last.action}`;
+    }
+    if (last.action === '和牌') return '本局结束';
+    if (last.action === '流局') return '流局';
+    return '';
+}
+
 function seat(l) {
     const h    = game.hands[l];
     const name = NAME[game.menfeng(l)] + (l === game.zhuang ? '（庄）' : '');
@@ -45,12 +67,18 @@ function seat(l) {
         : back(h.shoupaishu);
 
     const flowers = h.flowers.map(f => Wenling.Pai.FLOWER_NAME[f]).join('');
+    const baiban = (h.baiban && h.baiban.length) ? ` 白板×${h.baiban.length}` : '';
     const melds   = h.fulou.map(m => m.tiles.map(t => pai(t)).join('')).join(' ');
-    const he      = game.he[l].map(p => pai(p)).join('');
 
-    return `<div class="label">${name}${l === 0 ? '' : ' · ' + h.shoupaishu + ' 张'}</div>
+    /* 刚打出的那张牌加高亮，谁在出牌也标出来 */
+    const last   = game.log[game.log.length - 1];
+    const acting = last && last.action === '打' && last.player === l;
+    const he = game.he[l].map((p, i) =>
+        pai(p, acting && i === game.he[l].length - 1 ? 'just' : '')).join('');
+
+    return `<div class="label ${acting ? 'acting' : ''}">${acting ? '▶ ' : ''}${name}${l === 0 ? '' : ' · ' + h.shoupaishu + ' 张'}</div>
             <div class="hand">${hand}</div>
-            <div class="flowers">${flowers ? '花：' + flowers : ''}</div>
+            <div class="flowers">${flowers ? '花：' + flowers : ''}${baiban}</div>
             <div class="melds">${melds}</div>
             <div class="he">${he}</div>`;
 }
@@ -59,28 +87,29 @@ function actions() {
     if (! pending) return '';
 
     const p = pending;
+    const img = t => `<img class="pai" src="img/${t}.gif" alt="${t}">`;
+
     if (p.kind === 'dapai')    return '<span class="hint">点击你要打出的牌</span>';
-    if (p.kind === 'hu')       return btn(`${p.label}`, 'yes') + btn('过', 'no');
-    if (p.kind === 'pon')      return btn(`碰 ${p.tile}`, 'yes') + btn('过', 'no');
-    if (p.kind === 'gang')     return btn(`杠 ${p.tile}`, 'yes') + btn('过', 'no');
+    if (p.kind === 'hu')       return btn(`和牌 ${p.tile ? img(p.tile) : ''}`, 'yes') + btn('过', 'no');
+    if (p.kind === 'pon')      return btn(`碰 ${img(p.tile)}`, 'yes') + btn('过', 'no');
+    if (p.kind === 'gang')     return btn(`杠 ${img(p.tile)}`, 'yes') + btn('过', 'no');
 
     if (p.kind === 'chi') {
         return p.options.map((o, i) =>
-            `<button data-act="chi" data-i="${i}">吃 ${o[0]}${o[1]}${p.tile}</button>`
+            `<button data-act="chi" data-i="${i}">吃 ${img(o[0])}${img(o[1])}${img(p.tile)}</button>`
         ).join('') + btn('过', 'no');
     }
 
     if (p.kind === 'self_gang') {
-        const a = p.angang.map(t => btn(`暗杠 ${t}`, 'angang', `data-tile="${t}"`)).join('');
-        const k = p.kakan .map(t => btn(`加杠 ${t}`, 'kakan',  `data-tile="${t}"`)).join('');
+        const a = p.angang.map(t => btn(`暗杠 ${img(t)}`, 'angang', `data-tile="${t}"`)).join('');
+        const k = p.kakan .map(t => btn(`加杠 ${img(t)}`, 'kakan',  `data-tile="${t}"`)).join('');
         return a + k + btn('过', 'no');
     }
     return '';
 }
 
 function render() {
-    if (! game) return;
-    document.querySelector('#wl-board').innerHTML = `
+    if (! game) return;    document.querySelector('#wl-board').innerHTML = `
         <div class="seat top">${seat(2)}</div>
         <div class="seat left">${seat(3)}</div>
         <div class="seat right">${seat(1)}</div>
@@ -90,6 +119,7 @@ function render() {
             <div class="wall">${game.jushu_name()}${game.changbang ? ' ' + game.changbang + ' 本场' : ''}</div>
             <div class="wall">牌墙 ${game.shan.paishu} 张</div>
             ${game.nao ? '<div class="nao">闹闹</div>' : ''}
+            <div class="turn">${turn_text()}</div>
         </div>
         <div class="seat bottom">${seat(0)}</div>`;
     document.querySelector('#wl-actions').innerHTML = actions();
@@ -295,11 +325,11 @@ function make_policy() {
         },
         hu_zimo(hand, ctx) {
             if (ctx.player !== 0 || auto) return true;
-            return ask({ kind: 'hu', label: '自摸' });
+            return ask({ kind: 'hu', label: '自摸', tile: hand.pai[hand.pai.length - 1] });
         },
         hu_rong(hand, tile, ctx) {
             if (ctx.player !== 0 || auto) return true;
-            return ask({ kind: 'hu', label: `荣和 ${tile}` });
+            return ask({ kind: 'hu', label: `荣和 ${tile}`, tile });
         },
         pon(hand, tile, ctx) {
             if (ctx.player !== 0 || auto) return ai.pon(hand, tile, ctx);
@@ -372,8 +402,10 @@ function show_result(r, record_id) {
 
     if (r.type === 'hule') {
         const s = r.score;
-        body += `<h2>${NAME[r.menfeng]}家${r.winner === 0 ? '（你）' : ` P${r.winner}`}
-                 ${r.zimo ? '自摸' : '荣和'}</h2>`;
+        const who = `${NAME[r.menfeng]}家${r.winner === 0 ? '（你）' : ''}`;
+        const win_tile = (! r.zimo && r.win_tile)
+            ? ` <img class="pai mini" src="img/${r.win_tile}.gif" alt="${r.win_tile}">` : '';
+        body += `<h2>${who} ${r.zimo ? '自摸' : '荣和'}${win_tile}</h2>`;
         body += '<table>';
         for (const t of s.tai_list) body += `<tr><td>${t.name}</td><td class="num">${t.tai} 台</td></tr>`;
         body += `<tr><td>台数合计</td><td class="num">${s.tai}</td></tr>`;
@@ -392,7 +424,7 @@ function show_result(r, record_id) {
     const zi = r.zhuang ?? game.zhuang;
     const mf = i => (i - zi + 4) % 4;
     r.delta.forEach((d, i) => {
-        body += `<tr><td>P${i}（${NAME[mf(i)]}）</td>
+        body += `<tr><td>${NAME[mf(i)]}家（${i === 0 ? '你' : '电脑' + i}）</td>
                      <td class="num">${d >= 0 ? '+' : ''}${d}</td></tr>`;
     });
     body += '</table>';

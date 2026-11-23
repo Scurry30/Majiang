@@ -97,6 +97,7 @@ function rebuild_hand(snap, rule) {
     const hand = new Wenling.Shoupai(rule, snap.joker);
     for (const p of snap.hands[0].pai)     hand.add(p);
     for (const f of snap.hands[0].flowers) hand.add_flower(f);
+    for (const p of (snap.hands[0].baiban || [])) hand.add_baiban(p);
     for (const m of snap.hands[0].fulou)
         hand._fulou.push({ kind: m.kind, tile: m.tile, tiles: m.tiles.slice() });
     return hand;

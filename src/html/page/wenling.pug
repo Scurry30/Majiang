@@ -82,6 +82,7 @@ html(lang="zh-CN")
       #wl .pai.back { background: #2f7d5b; border: 1px solid #24614a; }
       #wl .seat { position: absolute; text-align: center; }
       #wl .seat .label { font-size: 13px; color: #cfe8db; margin-bottom: 2px; }
+      #wl .seat .label.acting { color: #ffd966; font-weight: bold; }
       #wl .seat.top    { top: 8px; left: 50%; transform: translateX(-50%); }
       #wl .seat.bottom { bottom: 16px; left: 50%; transform: translateX(-50%); width: 880px; }
       #wl .seat.left   { left: 8px; top: 50%; transform: translateY(-50%); width: 150px; }
@@ -97,6 +98,10 @@ html(lang="zh-CN")
       #wl .melds { font-size: 12px; color: #9fd6bb; min-height: 14px; line-height: 0; }
       #wl .he { margin-top: 4px; }
       #wl .he .pai { width: 24px; height: 34px; opacity: .85; }
+      #wl .he .pai.just { opacity: 1; outline: 3px solid #ffd966;
+                          box-shadow: 0 0 10px rgba(255, 217, 102, .9);
+                          transform: translateY(-4px); }
+      #wl .center .turn { margin-top: 8px; font-size: 13px; color: #7fd1a8; max-width: 160px; }
       #wl .center { position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
                     text-align: center; background: rgba(0,0,0,.45); border-radius: 10px;
                     padding: 10px 18px; }
@@ -110,6 +115,10 @@ html(lang="zh-CN")
                            border: none; cursor: pointer; background: #2f7d5b; color: #fff; }
       #wl-actions button:hover { background: #3c9a71; }
       #wl-actions .hint { color: #9fd6bb; font-size: 15px; }
+      #wl-actions button img.pai { width: 26px; height: 36px; vertical-align: middle;
+                                   margin: 0 2px; border-radius: 2px; }
+      #wl-result h2 img.pai.mini { width: 28px; height: 38px; vertical-align: middle;
+                                   margin-left: 4px; border-radius: 2px; }
       #wl-result { position: absolute; inset: 0; background: rgba(0,0,0,.78);
                    display: flex; align-items: center; justify-content: center; z-index: 10; }
       #wl-result.hide { display: none; }
