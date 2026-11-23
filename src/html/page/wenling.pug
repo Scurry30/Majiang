@@ -23,6 +23,9 @@ html(lang="zh-CN")
         label
           input#wl-tips-on(type="checkbox")
           |  牌效提示
+        label
+          input#wl-training(type="checkbox")
+          |  训练模式
         button#wl-new 新的一局
       .wl-main
         .wl-left
@@ -34,12 +37,18 @@ html(lang="zh-CN")
     style.
       body.wenling { margin: 0; background: #101512; color: #eee;
                      font-family: "Microsoft YaHei", sans-serif; }
-      #wl { width: 1232px; margin: 0 auto; position: relative; }
-      #wl .wl-main { display: flex; gap: 16px; align-items: flex-start; }
-      #wl .wl-left { width: 900px; }
+      #wl { width: min(1232px, calc(100vw - 24px)); margin: 0 auto; position: relative; }
+      #wl .wl-main { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+      #wl .wl-left { width: 900px; max-width: 100%; overflow-x: auto; }
       #wl-tips { width: 316px; height: 620px; box-sizing: border-box; overflow-y: auto;
                  background: #16302a; border: 1px solid #24503f; border-radius: 12px;
                  padding: 14px 16px; font-size: 13px; color: #cfe8db; line-height: 1.6; }
+      #wl-tips button { font-size: 13px; padding: 6px 14px; border-radius: 6px; border: none;
+                        background: #2f7d5b; color: #fff; cursor: pointer; }
+      #wl-tips button:hover { background: #3c9a71; }
+      @media (max-width: 1260px) {
+        #wl-tips { width: 900px; max-width: 100%; height: auto; min-height: 0; }
+      }
       #wl-tips .tips-head { font-size: 15px; color: #ffd966; margin-bottom: 6px; }
       #wl-tips .tips-big { font-size: 24px; color: #e8f4ee; margin: 2px 0 8px; }
       #wl-tips .tips-sub { color: #9fd6bb; margin-top: 12px; }
@@ -74,6 +83,8 @@ html(lang="zh-CN")
       #wl .seat.bottom .hand { min-height: 54px; }
       #wl .pai.selectable { cursor: pointer; outline: 2px solid #ffd966; }
       #wl .pai.selectable:hover { transform: translateY(-6px); }
+      #wl .pai.recommend { outline: 3px solid #7fd1a8;
+                           box-shadow: 0 0 10px rgba(127, 209, 168, .8); }
       #wl .pai.disabled { opacity: .3; cursor: not-allowed; }
       #wl .flowers { font-size: 12px; color: #ffd966; min-height: 16px; margin: 3px 0; }
       #wl .melds { font-size: 12px; color: #9fd6bb; min-height: 14px; line-height: 0; }

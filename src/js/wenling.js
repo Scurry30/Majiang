@@ -93,10 +93,18 @@ function render() {
     tips_panel();
 }
 
-/* ---------- 牌效提示 ---------- */
+/* ---------- 牌效提示 / 训练模式 ---------- */
 
 let tips_on = localStorage.getItem('Wenling.tips') !== '0';
 let tips_key = '';
+let last_analysis = null;         // { key, analysis } 供训练评分复用
+
+let training       = false;
+let current_seed   = null;
+let train_decisions = [];         // 本局每次打牌的评价
+let train_attempts  = [];         // 同一副牌打过几次
+
+function hand_key(hand) { return hand.pai.slice().sort().join(',') }
 
 function tile_name(p) {
     if (p[0] === 'z') return ['东', '南', '西', '北', '白', '发', '中'][+p[1] - 1];
@@ -114,12 +122,35 @@ function tile_list(list, cap = 12) {
     return h;
 }
 
-function tips_html() {
+function training_html() {
+    if (! training) return '';
+
+    const n       = train_decisions.length;
+    const optimal = train_decisions.filter(d => d.lost <= 0).length;
+    const lost    = train_decisions.reduce((a, d) => a + Math.max(0, d.lost), 0);
+
+    let h = '<div class="tips-head">训练模式</div>';
+    h += `<div class="tips-sub">种子 ${current_seed ?? '-'}</div>`;
+    h += `<div class="tips-sub">本局 ${n} 次打牌 · 最优 ${optimal} 次 · 累计少算 ${lost} 张</div>`;
+
+    const last = train_decisions.slice(-3).reverse();
+    if (last.length) {
+        h += '<div class="tips-sub">最近决策</div>';
+        h += last.map(d => d.lost > 0
+            ? `<div class="cand">打 ${tile_name(d.mine)} → 少算 ${d.lost} 张（最优是 ${tile_name(d.best)}）</div>`
+            : `<div class="cand">打 ${tile_name(d.mine)} ✓ 最优</div>`).join('');
+    }
+    if (train_attempts.length) {
+        h += '<div class="tips-sub">同一副牌已打</div>';
+        h += train_attempts.slice(-5).reverse().map(a => `<div class="cand">${a}</div>`).join('');
+    }
+    h += '<div style="margin-top:10px"><button id="wl-train-restart">重开这一局</button></div>';
+    return h + '<hr style="border:none;border-top:1px solid #24503f;margin:12px 0">';
+}
+
+function tips_html(a, ctx) {
     const hand = game.hands[0];
-    const ctx = { game, player: 0, menfeng: game.menfeng(0), nao: game.nao,
-                  joker: game.shan.joker, rule };
-    const a = Wenling.ai.analyze(hand, ctx);
-    const s = a.shanten;
+    const s    = a.shanten;
 
     let h = '<div class="tips-head">牌效提示</div>';
     h += `<div class="tips-big">${s < 0 ? '已和牌' : s === 0 ? '听牌' : s + ' 向听'}</div>`;
@@ -149,7 +180,6 @@ function tips_html() {
            + tile_list(a.waits);
     }
     else if (s > 0) {
-        /* 不是自己回合时，也把当前手牌的有效牌列出来，方便看牌型 */
         const eff = Wenling.ai.effective_tiles(hand, Wenling.ai.visible_counts(ctx));
         const n = eff.reduce((x, w) => x + w.left, 0);
         h += `<div class="tips-sub">当前有效牌 ${n} 张</div>` + tile_list(eff)
@@ -161,11 +191,16 @@ function tips_html() {
     return h;
 }
 
+function highlight_best(tile) {
+    const imgs = document.querySelectorAll('#wl-board .seat.bottom .pai.selectable');
+    imgs.forEach(img => img.classList.toggle('recommend', img.getAttribute('data-tile') === tile));
+}
+
 function tips_panel() {
     const el = document.querySelector('#wl-tips');
     if (! el) return;
 
-    if (! tips_on) {
+    if (! tips_on && ! training) {
         el.innerHTML = '<div class="tips-head">牌效提示</div>'
                      + '<div class="tips-sub">已关闭（勾选上方「牌效提示」开启）</div>';
         return;
@@ -173,15 +208,34 @@ function tips_panel() {
     if (! game || ! game.hands.length) return;
 
     const hand = game.hands[0];
-    const key = hand.pai.slice().sort().join(',') + '|' + hand.shoupaishu + '|'
-              + game.he.reduce((a, h) => a + h.length, 0) + '|' + hand.fulou.length;
+    const key = hand_key(hand) + '|' + game.he.reduce((a, h) => a + h.length, 0)
+              + '|' + hand.fulou.length;
     if (key === tips_key) return;
     tips_key = key;
 
     el.innerHTML = '<div class="tips-head">牌效提示</div><div class="tips-sub">计算中…</div>';
     setTimeout(() => {
-        if (key === tips_key && game) el.innerHTML = tips_html();
+        if (key !== tips_key || ! game) return;
+        const ctx = { game, player: 0, menfeng: game.menfeng(0), nao: game.nao,
+                      joker: game.shan.joker, rule };
+        const a = Wenling.ai.analyze(hand, ctx);
+        last_analysis = { key: hand_key(hand), analysis: a };
+        el.innerHTML = training_html() + tips_html(a, ctx);
+        if (a.is17 && a.best) highlight_best(a.best.tile);
     }, 0);
+}
+
+/* 训练模式：把这一手和最优解对比 */
+function record_training(tile) {
+    if (! last_analysis || ! pending || ! pending.hand) return;
+    if (last_analysis.key !== hand_key(pending.hand)) return;
+    const a = last_analysis.analysis;
+    if (! a || ! a.best) return;
+
+    const mine = a.candidates.find(c => c.tile === tile);
+    const best = a.best;
+    const lost = mine ? Math.max(0, best.ukeire - mine.ukeire) : 0;
+    train_decisions.push({ mine: tile, best: best.tile, lost });
 }
 
 /* ---------- 等待玩家回答 ---------- */
@@ -261,15 +315,18 @@ function make_policy() {
 document.addEventListener('click', ev => {
     const t = ev.target;
 
+    /* 训练模式：重开这一局 */
+    if (t && t.id === 'wl-train-restart') return start(current_seed);
+
     /* 点牌打牌 */
     if (pending && pending.kind === 'dapai' && t.classList
             && t.classList.contains('selectable')) {
         const tile = t.getAttribute('data-tile');
-        if (pending.hand_pai && ! pending.hand_pai.includes(tile)) return;
+        if (training) record_training(tile);
         return answer(tile);
     }
 
-    const b = t.closest && t.closest('#actions button');
+    const b = t.closest && t.closest('#wl-actions button');
     if (! b || ! pending) return;
 
     const act = b.getAttribute('data-act');
@@ -334,7 +391,7 @@ function show_result(r, record_id) {
     el.classList.remove('hide');
     document.querySelector('#again').onclick = () => {
         el.classList.add('hide');
-        start();
+        start(training ? current_seed : undefined);   // 训练模式重打同一副牌
     };
 }
 
@@ -353,20 +410,42 @@ document.querySelector('#wl-tips-on').addEventListener('change', ev => {
     tips_panel();
 });
 
-document.querySelector('#wl-new').addEventListener('click', () => {
-    document.querySelector('#wl-result').classList.add('hide');
-    start();
+document.querySelector('#wl-training').addEventListener('change', ev => {
+    training = ev.target.checked;
+    if (training) {
+        /* 训练模式必须看得到牌效面板 */
+        tips_on = true;
+        document.querySelector('#wl-tips-on').checked = true;
+        localStorage.setItem('Wenling.tips', '1');
+        tips_key = '';
+        tips_panel();
+    }
+    else {
+        train_decisions = [];
+        train_attempts  = [];
+        tips_key = '';
+        tips_panel();
+    }
 });
 
-async function start() {
+document.querySelector('#wl-new').addEventListener('click', () => {
+    document.querySelector('#wl-result').classList.add('hide');
+    start();                       // 新的一局：换种子
+});
+
+async function start(seed) {
     pending = null;
 
-    const seed      = (Math.random() * 1e9) | 0;
+    current_seed    = seed ?? ((Math.random() * 1e9) | 0);
+    train_decisions = [];
+    tips_key        = '';
+    last_analysis   = null;
+
     const decisions = [];
     const { policy: wrapped, names }
         = Wenling.record.record_policy(make_policy(), decisions);
 
-    game = new Wenling.Game(rule, wrapped, { seed });
+    game = new Wenling.Game(rule, wrapped, { seed: current_seed });
     game._on_update = () => render();
     game.kaiju();
     render();
@@ -375,8 +454,18 @@ async function start() {
     pending = null;
     render();
 
+    if (training) {
+        const sum = result.type === 'hule'
+            ? `${result.winner === 0 ? '你胡' : 'P' + result.winner + ' 胡'} ${result.score.defen} 分（${result.score.tai} 台）`
+            : '流局';
+        train_attempts.push(sum);
+        if (train_attempts.length > 8) train_attempts.shift();
+        tips_key = '';
+        tips_panel();
+    }
+
     const record = Wenling.record.make_record(
-        { seed, rule, decisions, methods: names, game, result });
+        { seed: current_seed, rule, decisions, methods: names, game, result });
     const id = save_record(record);
     show_result(result, id);
 }
