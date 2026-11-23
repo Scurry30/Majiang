@@ -19,6 +19,7 @@ html(lang="zh-CN")
       .wr-bar
         select#wr-select
         span#wr-counter
+      #wr-summary
       #wr-board
       #wr-ctl
         button#wr-first 首
@@ -65,4 +66,13 @@ html(lang="zh-CN")
       #wr-ctl button:disabled { background: #24503f; color: #7f9a8d; cursor: default; }
       #wr-log { text-align: center; color: #cfe8db; font-size: 14px; height: 24px; }
       #wr-log .tag { color: #ffd966; margin-right: 8px; }
+      #wr-log .bad { color: #ff8a65; margin-left: 8px; }
+      #wr-log .ok { color: #7fd1a8; margin-left: 8px; }
+      #wr-summary { font-size: 13px; color: #b9cdc3; background: #16302a;
+                    border: 1px solid #24503f; border-radius: 10px;
+                    padding: 10px 14px; margin-bottom: 12px; line-height: 1.7; }
+      #wr-summary:empty { display: none; }
+      #wr-summary b { color: #ffd966; font-weight: normal; }
+      #wr-summary .bad { color: #ff8a65; }
+      #wr-summary .jump { color: #7fd1a8; cursor: pointer; text-decoration: underline; }
       #wr-empty { text-align: center; color: #9fd6bb; margin-top: 80px; font-size: 15px; }
