@@ -24,7 +24,9 @@ function pai(p, cls = '') {
 function seat_html(state, l) {
     const h = state.hands[l];
     const name = NAME[state.menfeng[l]] + (state.zhuang === l ? '（庄）' : '') + ` · ${h.pai.length} 张`;
-    const hand = h.pai.map(p => pai(p)).join('');
+    const tiles = h.pai.slice().sort((a, b) =>
+        Wenling.Pai.sort_key(a) - Wenling.Pai.sort_key(b));
+    const hand = tiles.map(p => pai(p)).join('');
     const flowers = h.flowers.map(f => Wenling.Pai.FLOWER_NAME[f]).join('');
     const melds = h.fulou.map(m => m.tiles.map(t => pai(t)).join('')).join(' ');
     const he = state.he[l].map(p => pai(p)).join('');

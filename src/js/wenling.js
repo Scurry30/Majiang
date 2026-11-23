@@ -33,8 +33,11 @@ function seat(l) {
     const name = NAME[game.menfeng(l)] + (l === game.zhuang ? '（庄）' : '');
 
     const kuikae = (l === 0) ? h.kuikae : null;
+    /* 手牌按牌种排序显示，保证每次摸打后位置稳定不跳 */
+    const tiles = h.pai.slice().sort((a, b) =>
+        Wenling.Pai.sort_key(a) - Wenling.Pai.sort_key(b));
     const hand = l === 0
-        ? h.pai.map(p => {
+        ? tiles.map(p => {
               const cls = (p === kuikae) ? 'disabled'
                         : (pending && pending.kind === 'dapai' ? 'selectable' : '');
               return pai(p, cls);
@@ -272,13 +275,23 @@ function auto_answer() {
 
 /* ---------- 策略：人类在 P0，其余用牌效 AI ---------- */
 
+/* 机器人出牌节奏（毫秒），让玩家看得清 */
+let speed = +(localStorage.getItem('Wenling.speed') ?? 450);
+if (! [150, 450, 900].includes(speed)) speed = 450;
+
+const wait = ms => new Promise(r => setTimeout(r, ms));
+
 function make_policy() {
     const ai = Wenling.ai.create_policy();
 
     return {
         dapai(hand, ctx) {
-            if (ctx.player !== 0 || auto) return ai.dapai(hand, ctx);
-            return ask({ kind: 'dapai', hand });
+            if (ctx.player === 0 && ! auto) return ask({ kind: 'dapai', hand });
+
+            const tile = ai.dapai(hand, ctx);
+            /* 机器人：先算再停顿，让上一张打牌在屏幕上停一会儿 */
+            if (ctx.player !== 0 && ! auto && speed > 0) return wait(speed).then(() => tile);
+            return tile;
         },
         hu_zimo(hand, ctx) {
             if (ctx.player !== 0 || auto) return true;
@@ -426,6 +439,13 @@ document.querySelector('#wl-training').addEventListener('change', ev => {
         tips_key = '';
         tips_panel();
     }
+});
+
+const speedEl = document.querySelector('#wl-speed');
+speedEl.value = String(speed);
+speedEl.addEventListener('change', ev => {
+    speed = +ev.target.value;
+    localStorage.setItem('Wenling.speed', String(speed));
 });
 
 document.querySelector('#wl-new').addEventListener('click', () => {
