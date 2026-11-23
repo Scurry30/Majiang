@@ -20,15 +20,37 @@ html(lang="zh-CN")
         label
           input#wl-auto(type="checkbox")
           |  自动打牌
+        label
+          input#wl-tips-on(type="checkbox")
+          |  牌效提示
         button#wl-new 新的一局
-      #wl-board
-      #wl-actions
+      .wl-main
+        .wl-left
+          #wl-board
+          #wl-actions
+        #wl-tips
       #wl-result.hide
 
     style.
       body.wenling { margin: 0; background: #101512; color: #eee;
                      font-family: "Microsoft YaHei", sans-serif; }
-      #wl { width: 900px; margin: 0 auto; position: relative; }
+      #wl { width: 1232px; margin: 0 auto; position: relative; }
+      #wl .wl-main { display: flex; gap: 16px; align-items: flex-start; }
+      #wl .wl-left { width: 900px; }
+      #wl-tips { width: 316px; height: 620px; box-sizing: border-box; overflow-y: auto;
+                 background: #16302a; border: 1px solid #24503f; border-radius: 12px;
+                 padding: 14px 16px; font-size: 13px; color: #cfe8db; line-height: 1.6; }
+      #wl-tips .tips-head { font-size: 15px; color: #ffd966; margin-bottom: 6px; }
+      #wl-tips .tips-big { font-size: 24px; color: #e8f4ee; margin: 2px 0 8px; }
+      #wl-tips .tips-sub { color: #9fd6bb; margin-top: 12px; }
+      #wl-tips b { color: #7fd1a8; font-weight: normal; }
+      #wl-tips .tile-list { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 6px; }
+      #wl-tips .tile-list .item { position: relative; }
+      #wl-tips .tile-list img { width: 26px; height: 36px; display: block; }
+      #wl-tips .tile-list .n { position: absolute; right: -3px; bottom: -3px;
+                               background: #0f1b16; border: 1px solid #2f6b52;
+                               border-radius: 8px; font-size: 10px; padding: 0 3px; }
+      #wl-tips .cand { color: #b9cdc3; }
       #wl .wl-bar { display: flex; align-items: center; justify-content: flex-end;
                     gap: 16px; margin-top: 18px; font-size: 13px; color: #9fd6bb; }
       #wl .wl-bar label { cursor: pointer; }

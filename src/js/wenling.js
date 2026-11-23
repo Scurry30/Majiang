@@ -90,6 +90,98 @@ function render() {
         </div>
         <div class="seat bottom">${seat(0)}</div>`;
     document.querySelector('#wl-actions').innerHTML = actions();
+    tips_panel();
+}
+
+/* ---------- 牌效提示 ---------- */
+
+let tips_on = localStorage.getItem('Wenling.tips') !== '0';
+let tips_key = '';
+
+function tile_name(p) {
+    if (p[0] === 'z') return ['东', '南', '西', '北', '白', '发', '中'][+p[1] - 1];
+    if (p[0] === 'f') return Wenling.Pai.FLOWER_NAME[p];
+    return p[1] + { m: '万', p: '筒', s: '索' }[p[0]];
+}
+
+function tile_list(list, cap = 12) {
+    const sorted = list.slice().sort((a, b) => b.left - a.left);
+    const shown  = sorted.slice(0, cap);
+    let h = '<div class="tile-list">' + shown.map(e =>
+        `<span class="item">${pai(e.tile)}<span class="n">${e.left}</span></span>`
+    ).join('') + '</div>';
+    if (list.length > cap) h += `<div class="tips-sub">…共 ${list.length} 种</div>`;
+    return h;
+}
+
+function tips_html() {
+    const hand = game.hands[0];
+    const ctx = { game, player: 0, menfeng: game.menfeng(0), nao: game.nao,
+                  joker: game.shan.joker, rule };
+    const a = Wenling.ai.analyze(hand, ctx);
+    const s = a.shanten;
+
+    let h = '<div class="tips-head">牌效提示</div>';
+    h += `<div class="tips-big">${s < 0 ? '已和牌' : s === 0 ? '听牌' : s + ' 向听'}</div>`;
+
+    if (a.is17 && a.best) {
+        const b = a.best;
+        h += `<div class="tips-sub">推荐打 <b>${tile_name(b.tile)}</b></div>`;
+        if (b.shanten === 0 && b.waits.length) {
+            h += `<div class="tips-sub">听 ${b.waits.length} 种，共 ${b.ukeire} 张</div>`
+               + tile_list(b.waits);
+        } else {
+            h += `<div class="tips-sub">有效牌 ${b.ukeire} 张（摸到就进张）</div>`
+               + tile_list(b.effective);
+        }
+        const others = a.candidates
+            .filter(c => c.tile !== b.tile && c.shanten === b.shanten && c.ukeire > 0)
+            .slice(0, 4);
+        if (others.length) {
+            h += '<div class="tips-sub">同样不亏的选择</div>';
+            h += others.map(c =>
+                `<div class="cand">打 ${tile_name(c.tile)} → ${c.shanten} 向听，${c.ukeire} 张</div>`
+            ).join('');
+        }
+    }
+    else if (s === 0 && a.waits.length) {
+        h += `<div class="tips-sub">已听牌：${a.waits.length} 种，共 ${a.waits.reduce((x, w) => x + w.left, 0)} 张</div>`
+           + tile_list(a.waits);
+    }
+    else if (s > 0) {
+        /* 不是自己回合时，也把当前手牌的有效牌列出来，方便看牌型 */
+        const eff = Wenling.ai.effective_tiles(hand, Wenling.ai.visible_counts(ctx));
+        const n = eff.reduce((x, w) => x + w.left, 0);
+        h += `<div class="tips-sub">当前有效牌 ${n} 张</div>` + tile_list(eff)
+           + '<div class="tips-sub">轮到你摸牌后，这里会给打牌建议</div>';
+    }
+    else {
+        h += '<div class="tips-sub">轮到你摸牌后，这里会给打牌建议</div>';
+    }
+    return h;
+}
+
+function tips_panel() {
+    const el = document.querySelector('#wl-tips');
+    if (! el) return;
+
+    if (! tips_on) {
+        el.innerHTML = '<div class="tips-head">牌效提示</div>'
+                     + '<div class="tips-sub">已关闭（勾选上方「牌效提示」开启）</div>';
+        return;
+    }
+    if (! game || ! game.hands.length) return;
+
+    const hand = game.hands[0];
+    const key = hand.pai.slice().sort().join(',') + '|' + hand.shoupaishu + '|'
+              + game.he.reduce((a, h) => a + h.length, 0) + '|' + hand.fulou.length;
+    if (key === tips_key) return;
+    tips_key = key;
+
+    el.innerHTML = '<div class="tips-head">牌效提示</div><div class="tips-sub">计算中…</div>';
+    setTimeout(() => {
+        if (key === tips_key && game) el.innerHTML = tips_html();
+    }, 0);
 }
 
 /* ---------- 等待玩家回答 ---------- */
@@ -251,6 +343,14 @@ function show_result(r, record_id) {
 document.querySelector('#wl-auto').addEventListener('change', ev => {
     auto = ev.target.checked;
     if (auto) auto_answer();
+});
+
+document.querySelector('#wl-tips-on').checked = tips_on;
+document.querySelector('#wl-tips-on').addEventListener('change', ev => {
+    tips_on = ev.target.checked;
+    localStorage.setItem('Wenling.tips', tips_on ? '1' : '0');
+    tips_key = '';
+    tips_panel();
 });
 
 document.querySelector('#wl-new').addEventListener('click', () => {
