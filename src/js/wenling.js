@@ -226,8 +226,11 @@ function show_result(r, record_id) {
     }
 
     body += '<table style="margin-top:12px">';
+    /* 用和牌当时的庄家算风位，避免显示成轮转后的座位 */
+    const zi = r.zhuang ?? game.zhuang;
+    const mf = i => (i - zi + 4) % 4;
     r.delta.forEach((d, i) => {
-        body += `<tr><td>P${i}（${NAME[game.menfeng(i)]}）</td>
+        body += `<tr><td>P${i}（${NAME[mf(i)]}）</td>
                      <td class="num">${d >= 0 ? '+' : ''}${d}</td></tr>`;
     });
     body += '</table>';
