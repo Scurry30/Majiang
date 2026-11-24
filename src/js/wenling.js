@@ -451,6 +451,14 @@ function show_result(r, record_id) {
                      <td class="num">${d >= 0 ? '+' : ''}${d}</td></tr>`;
     });
     body += '</table>';
+
+    /* 下一局怎么走：连庄还是下庄 */
+    const nx = next_state;
+    const renchan = nx.zhuang === hand_state.zhuang;
+    body += `<p class="next-hand">下一局：${game.jushu_name_at(nx.jushu)}`
+          + `${nx.changbang ? ' ' + nx.changbang + ' 本场' : ''}`
+          + `${renchan ? '（庄家连庄）' : '（庄家轮换）'}</p>`;
+
     body += `<button id="again">再来一局</button>`;
     if (training) body += ` <button id="again-same">重开这一局（同牌）</button>`;
     if (record_id)
@@ -459,17 +467,17 @@ function show_result(r, record_id) {
     el.innerHTML = `<div class="card">${body}</div>`;
     el.classList.remove('hide');
 
-    /* 再来一局：永远是新的牌局 */
+    /* 再来一局：接续上一局（连庄或下庄由引擎算好） */
     document.querySelector('#again').onclick = () => {
         el.classList.add('hide');
-        start();
+        start(undefined, next_state);
     };
 
     /* 训练模式下额外给一个「重打同一副牌」的入口 */
     const again_same = document.querySelector('#again-same');
     if (again_same) again_same.onclick = () => {
         el.classList.add('hide');
-        start(current_seed);
+        start(current_seed, hand_state);
     };
 }
 
@@ -518,7 +526,11 @@ document.querySelector('#wl-new').addEventListener('click', () => {
     start();                       // 新的一局：换种子
 });
 
-async function start(seed) {
+/* 跨局的场次状态：这一局开局的、以及下一局要用的 */
+let hand_state = { zhuang: 0, jushu: 0, changbang: 0 };
+let next_state = { zhuang: 0, jushu: 0, changbang: 0 };
+
+async function start(seed, state) {
     pending = null;
 
     current_seed    = seed ?? ((Math.random() * 1e9) | 0);
@@ -526,11 +538,14 @@ async function start(seed) {
     tips_key        = '';
     last_analysis   = null;
 
+    /* 这一局开局时的场次状态（庄家/局数/本场），记牌谱和"重开这一局"都要用 */
+    hand_state = state ? { ...state } : { zhuang: 0, jushu: 0, changbang: 0 };
+
     const decisions = [];
     const { policy: wrapped, names }
         = Wenling.record.record_policy(make_policy(), decisions);
 
-    game = new Wenling.Game(rule, wrapped, { seed: current_seed });
+    game = new Wenling.Game(rule, wrapped, { seed: current_seed, ...hand_state });
     game._on_update = () => render();
     game.kaiju();
     render();
@@ -538,6 +553,9 @@ async function start(seed) {
     const result = await game.run();
     pending = null;
     render();
+
+    /* 引擎打完这一局后，已经把连庄/下庄算好了，下一局沿用 */
+    next_state = { zhuang: game.zhuang, jushu: game.jushu, changbang: game.changbang };
 
     if (training) {
         const sum = result.type === 'hule'
@@ -550,7 +568,8 @@ async function start(seed) {
     }
 
     const record = Wenling.record.make_record(
-        { seed: current_seed, rule, decisions, methods: names, game, result });
+        { seed: current_seed, rule, state: hand_state,
+          decisions, methods: names, game, result });
     const id = save_record(record);
     show_result(result, id);
 }
