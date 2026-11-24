@@ -67,7 +67,10 @@ function seat(l) {
         : back(h.shoupaishu);
 
     const flowers = h.flowers.map(f => Wenling.Pai.FLOWER_NAME[f]).join('');
-    const baiban = (h.baiban && h.baiban.length) ? ` 白板×${h.baiban.length}` : '';
+    const bb      = h.baiban || [];
+    const n_bai   = bb.filter(p => p === 'z5').length;
+    const n_fa    = bb.filter(p => p === 'z6').length;
+    const baiban  = (n_bai ? ` 白板×${n_bai}` : '') + (n_fa ? ` 发×${n_fa}` : '');
     const melds   = h.fulou.map(m => m.tiles.map(t => pai(t)).join('')).join(' ');
 
     /* 刚打出的那张牌加高亮，谁在出牌也标出来 */
