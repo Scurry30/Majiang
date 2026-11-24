@@ -449,14 +449,24 @@ function show_result(r, record_id) {
     });
     body += '</table>';
     body += `<button id="again">再来一局</button>`;
+    if (training) body += ` <button id="again-same">重开这一局（同牌）</button>`;
     if (record_id)
         body += ` <a class="replay" href="wenling-replay.html?id=${record_id}">回放这局</a>`;
 
     el.innerHTML = `<div class="card">${body}</div>`;
     el.classList.remove('hide');
+
+    /* 再来一局：永远是新的牌局 */
     document.querySelector('#again').onclick = () => {
         el.classList.add('hide');
-        start(training ? current_seed : undefined);   // 训练模式重打同一副牌
+        start();
+    };
+
+    /* 训练模式下额外给一个「重打同一副牌」的入口 */
+    const again_same = document.querySelector('#again-same');
+    if (again_same) again_same.onclick = () => {
+        el.classList.add('hide');
+        start(current_seed);
     };
 }
 
