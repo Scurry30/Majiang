@@ -93,6 +93,8 @@ function actions() {
     if (p.kind === 'hu')       return btn(`和牌 ${p.tile ? img(p.tile) : ''}`, 'yes') + btn('过', 'no');
     if (p.kind === 'pon')      return btn(`碰 ${img(p.tile)}`, 'yes') + btn('过', 'no');
     if (p.kind === 'gang')     return btn(`杠 ${img(p.tile)}`, 'yes') + btn('过', 'no');
+    if (p.kind === 'both')     return btn(`杠 ${img(p.tile)}`, 'gang_yes')
+                                    + btn(`碰 ${img(p.tile)}`, 'pon_yes') + btn('过', 'no');
 
     if (p.kind === 'chi') {
         return p.options.map((o, i) =>
@@ -311,6 +313,9 @@ if (! [150, 450, 900].includes(speed)) speed = 450;
 
 const wait = ms => new Promise(r => setTimeout(r, ms));
 
+/* 手里 3 张时可以杠也可以碰，用一个合并提示让玩家自己选 */
+let claim_intent = null;
+
 function make_policy() {
     const ai = Wenling.ai.create_policy();
 
@@ -333,10 +338,23 @@ function make_policy() {
         },
         pon(hand, tile, ctx) {
             if (ctx.player !== 0 || auto) return ai.pon(hand, tile, ctx);
+            if (claim_intent && claim_intent.tile === tile) {
+                const act = claim_intent.action;
+                claim_intent = null;
+                return act === 'pon';
+            }
             return ask({ kind: 'pon', tile });
         },
         gang(hand, tile, ctx) {
             if (ctx.player !== 0 || auto) return false;
+            /* 手里 3 张时杠和碰都成立，让玩家二选一 */
+            if (hand.can_pon(tile)) {
+                return ask({ kind: 'both', tile }).then(v => {
+                    if (v === 'gang') return true;
+                    claim_intent = { tile, action: v === 'pon' ? 'pon' : 'pass' };
+                    return false;
+                });
+            }
             return ask({ kind: 'gang', tile });
         },
         chi(hand, options, tile, ctx) {
@@ -375,6 +393,8 @@ document.addEventListener('click', ev => {
     const act = b.getAttribute('data-act');
     if (act === 'no')  return answer(act === 'no' ? (pending.kind === 'chi' ? null : false) : null);
     if (act === 'yes') return answer(true);
+    if (act === 'gang_yes') return answer('gang');
+    if (act === 'pon_yes')  return answer('pon');
     if (act === 'chi') return answer(pending.options[+b.getAttribute('data-i')]);
     if (act === 'angang' || act === 'kakan')
         return answer({ type: act, tile: b.getAttribute('data-tile') });
