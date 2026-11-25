@@ -514,8 +514,14 @@ document.querySelector('#wl-training').addEventListener('change', ev => {
     }
 });
 
-const speedEl = document.querySelector('#wl-speed');
-speedEl.value = String(speed);
+/* 页面上显示当前构建号，方便确认"我跑的是哪一版" */
+{
+    const meta = document.querySelector('meta[name="build"]');
+    const el   = document.querySelector('#wl-ver');
+    if (meta && el) el.textContent = '构建 ' + meta.getAttribute('content');
+}
+
+const speedEl = document.querySelector('#wl-speed');speedEl.value = String(speed);
 speedEl.addEventListener('change', ev => {
     speed = +ev.target.value;
     localStorage.setItem('Wenling.speed', String(speed));

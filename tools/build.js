@@ -84,4 +84,24 @@ webpack(config, (err, stats) => {
         process.exit(1);
     }
     console.log(stats.toString({ colors: false, chunks: false, modules: false }));
+
+    /* 给 HTML 里的 js/css 引用打上构建时间戳，浏览器就不会拿旧文件了 */
+    const stamp   = Date.now().toString(36);
+    const distDir = path.join(root, 'dist');
+    let touched   = 0;
+    for (const f of fs.readdirSync(distDir).filter(n => n.endsWith('.html'))) {
+        const p = path.join(distDir, f);
+        const before = fs.readFileSync(p, 'utf8');
+        let after = before.replace(
+            /(src|href)="((?:js|css)\/[^"]+?\.(?:js|css))(\?v=[^"]*)?"/g,
+            (m, attr, url) => `${attr}="${url}?v=${stamp}"`
+        );
+        /* 顺便把构建号写进 <meta name="build">，页面上能看到跑的哪一版 */
+        if (/<meta name="build"/.test(after))
+            after = after.replace(/<meta name="build" content="[^"]*">/, `<meta name="build" content="${stamp}">`);
+        else
+            after = after.replace(/<head>/i, `<head>\n    <meta name="build" content="${stamp}">`);
+        if (after !== before) { fs.writeFileSync(p, after); touched++; }
+    }
+    console.log(`stamped ${touched} html files with v=${stamp}`);
 });
