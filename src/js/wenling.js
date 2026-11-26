@@ -58,11 +58,21 @@ function seat(l) {
     /* 手牌按牌种排序显示，保证每次摸打后位置稳定不跳 */
     const tiles = h.pai.slice().sort((a, b) =>
         Wenling.Pai.sort_key(a) - Wenling.Pai.sort_key(b));
+
+    /* 刚摸到的那张：轮到自己出牌时，手牌最后一张就是摸到的 */
+    const need   = (5 - h.fulou.length) * 3 + 2;
+    const my_turn = (l === 0) && pending && pending.kind === 'dapai'
+                 && h.pai.length === need;
+    const drawn  = my_turn ? h.pai[h.pai.length - 1] : null;
+    const drawn_i = drawn ? tiles.lastIndexOf(drawn) : -1;
+
     const hand = l === 0
-        ? tiles.map(p => {
-              const cls = (p === kuikae) ? 'disabled'
-                        : (pending && pending.kind === 'dapai' ? 'selectable' : '');
-              return pai(p, cls);
+        ? tiles.map((p, i) => {
+              const cls = [];
+              if (p === kuikae) cls.push('disabled');
+              else if (pending && pending.kind === 'dapai') cls.push('selectable');
+              if (i === drawn_i) cls.push('drawn');
+              return pai(p, cls.join(' '));
           }).join('')
         : back(h.shoupaishu);
 
@@ -259,7 +269,7 @@ function tips_panel() {
         const a = Wenling.ai.analyze(hand, ctx);
         last_analysis = { key: hand_key(hand), analysis: a };
         el.innerHTML = training_html() + tips_html(a, ctx);
-        if (a.is17 && a.best) highlight_best(a.best.tile);
+        if (training && a.is17 && a.best) highlight_best(a.best.tile);
     }, 0);
 }
 
