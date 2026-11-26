@@ -31,23 +31,41 @@ const webpack = resolveWebpack();
 
 const config = {
     mode: 'production',
-    entry: {
-        majiang:  './src/js/majiang.js',
-        index:    './src/js/index.js',
-        autoplay: './src/js/autoplay.js',
-        netplay:  './src/js/netplay.js',
-        rule:     './src/js/rule.js',
-        paipu:    './src/js/paipu.js',
-        paili:    './src/js/paili.js',
-        hule:     './src/js/hule.js',
-        drill:    './src/js/drill.js',
-        dapai:    './src/js/dapai.js',
-        paiga:    './src/js/paiga.js',
-        wenling:  './src/js/wenling.js',
-        'wenling-replay': './src/js/wenling-replay.js',
-        'wenling-stats':  './src/js/wenling-stats.js',
-        ruleset:  './src/js/ruleset.js',
-    },
+    entry: (() => {
+        const all = {
+            majiang:  './src/js/majiang.js',
+            index:    './src/js/index.js',
+            autoplay: './src/js/autoplay.js',
+            netplay:  './src/js/netplay.js',
+            rule:     './src/js/rule.js',
+            paipu:    './src/js/paipu.js',
+            paili:    './src/js/paili.js',
+            hule:     './src/js/hule.js',
+            drill:    './src/js/drill.js',
+            dapai:    './src/js/dapai.js',
+            paiga:    './src/js/paiga.js',
+            wenling:  './src/js/wenling.js',
+            'wenling-replay': './src/js/wenling-replay.js',
+            'wenling-stats':  './src/js/wenling-stats.js',
+            ruleset:  './src/js/ruleset.js',
+        };
+
+        /* --only=wenling[,wenling-replay] 只重打指定入口（改一个页面不必全量构建） */
+        const arg = process.argv.find(a => a.startsWith('--only='));
+        if (! arg) return all;
+
+        const want = arg.slice('--only='.length).split(',').map(s => s.trim()).filter(Boolean);
+        const picked = {};
+        for (const k of want) {
+            if (! all[k]) {
+                console.error(`unknown entry: ${k}\navailable: ${Object.keys(all).join(', ')}`);
+                process.exit(1);
+            }
+            picked[k] = all[k];
+        }
+        console.log(`building only: ${Object.keys(picked).join(', ')}`);
+        return picked;
+    })(),
     output: {
         path: path.join(root, 'dist', 'js'),
         filename: `[name]-${version}.js`,
