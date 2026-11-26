@@ -1,6 +1,7 @@
 # 温岭麻将 模块索引
 
 改一个规则时按这张表定位，不用再全仓库找。
+具体改法见 [changing-rules.md](changing-rules.md)。
 
 ## 引擎 `majiang-wenling/lib/`
 
